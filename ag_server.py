@@ -20,7 +20,7 @@ def _create_task(payload, api_key):
             return json.loads(urllib.request.urlopen(req, timeout=120).read())
         except urllib.error.HTTPError as e:
             body = e.read().decode()
-            if "rate_limit" in body and attempt < 4:
+            if (e.code == 429 or "rate_limit" in body) and attempt < 4:
                 time.sleep(70)
                 continue
             return {"error": "API error %d: %s" % (e.code, body[:200])}
