@@ -48,18 +48,25 @@ H = "<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"UTF-8\"><meta nam
 
 
 def _poll_once(video_id, api_key):
-    req = urllib.request.Request(BASE_URL + "/agnesapi?video_id=" + video_id)
-    req.add_header("Authorization", "Bearer " + api_key)
-    try:
-        r = json.loads(urllib.request.urlopen(req, timeout=30).read())
-        st = r.get("status", "")
-        if st == "completed":
-            return {"status": "completed", "url": r.get("url", "")}
-        if st in ("failed", "error"):
-            return {"error": "Failed: " + str(r.get("error", "?"))}
-        return {"status": st, "progress": r.get("progress", 0)}
-    except Exception as e:
-        return {"error": str(e)}
+    for attempt in range(5):
+        req = urllib.request.Request(BASE_URL + "/agnesapi?video_id=" + video_id)
+        req.add_header("Authorization", "Bearer " + api_key)
+        try:
+            r = json.loads(urllib.request.urlopen(req, timeout=30).read())
+            st = r.get("status", "")
+            if st == "completed":
+                return {"status": "completed", "url": r.get("url", "")}
+            if st in ("failed", "error"):
+                return {"error": "Failed: " + str(r.get("error", "?"))}
+            return {"status": st, "progress": r.get("progress", 0)}
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < 4:
+                time.sleep(10)
+                continue
+            return {"error": "HTTP Error %d" % e.code}
+        except Exception as e:
+            return {"error": str(e)}
+    return {"error": "Poll rate-limit retries exhausted"}
 
 import urllib.parse
 
