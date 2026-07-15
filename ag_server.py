@@ -4,7 +4,7 @@ BASE_URL = "https://apihub.agnes-ai.com"
 DEFAULT_API_KEY = "sk-D7ZTOQoga44G24luT7Z2ueEaXtijOgsGo3TXzGo2jORV4To8"
 DEFAULT_DOWNLOAD_DIR = "D:\\Downloads"
 DEFAULT_BG = "D:/Jiong-ci-yuan/初音未来.mp4"
-PORT = 8080
+import os; PORT = int(os.environ.get("PORT", "8080"))
 
 
 def _frames_ok(n):
@@ -149,4 +149,4 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    http.server.HTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
+    http.server.HTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
